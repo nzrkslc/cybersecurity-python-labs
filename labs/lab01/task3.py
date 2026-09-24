@@ -44,35 +44,49 @@ def create_user(username: str, password: str) -> tuple[str, str]:
     return username, pwd_hash
 
 
-def create_users(users_list: list[tuple[str, str]]) -> None:
-    """Записує список користувачів у файл CSV."""
-    os.makedirs(DATA_DIR, exist_ok=True)
-    with open(CSV_FILE_PATH, mode="w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["username", "password_hash"])
-        for username, password in users_list:
-            u_name, p_hash = create_user(username, password)
-            writer.writerow([u_name, p_hash])
+def create_users(users_list: list[tuple[str, str]]) -> bool:
+    """Записує список користувачів у файл CSV з локальною обробкою винятків."""
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(CSV_FILE_PATH, mode="w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["username", "password_hash"])
+            for username, password in users_list:
+                u_name, p_hash = create_user(username, password)
+                writer.writerow([u_name, p_hash])
+        return True
+    except PermissionError as err:
+        print(f"[create_users] Помилка прав доступу при створенні CSV: {err}")
+    except OSError as err:
+        print(f"[create_users] Помилка вводу/виводу при записі в CSV: {err}")
+    return False
 
 
 def read_users_db(verbose: bool = True) -> list[tuple[str, str]]:
-    """Зчитує користувачів з CSV та виводить у вигляді таблиці."""
+    """Зчитує користувачів з CSV з дотриманням пріоритету винятків."""
     users_db: list[tuple[str, str]] = []
-    if not os.path.exists(CSV_FILE_PATH):
-        raise FileNotFoundError(f"Файл бази даних {CSV_FILE_PATH} не знайдено.")
 
-    with open(CSV_FILE_PATH, mode="r", newline="", encoding="utf-8") as f:
-        reader = csv.reader(f)
-        next(reader, None)  # Пропуск заголовка
-        for row in reader:
-            if row:
-                users_db.append((row[0], row[1]))
+    try:
+        with open(CSV_FILE_PATH, mode="r", newline="", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            next(reader, None)  # Пропуск заголовка
+            for row in reader:
+                if row:
+                    users_db.append((row[0], row[1]))
 
-    if verbose:
-        print(f"{'Логін':<20} | {'Хеш пароля (SHA3-256)'}")
-        print("-" * 79)
-        for u_name, u_hash in users_db:
-            print(f"{u_name:<20} | {u_hash}")
+        if verbose:
+            print(f"{'Логін':<20} | {'Хеш пароля (SHA3-256)'}")
+            print("-" * 79)
+            for u_name, u_hash in users_db:
+                print(f"{u_name:<20} | {u_hash}")
+
+    except FileNotFoundError as err:
+        print(f"[read_users_db] Файл бази не знайдено: {err}")
+    except PermissionError as err:
+        print(f"[read_users_db] Відмовлено в доступі до файлу бази: {err}")
+    except OSError as err:
+        print(f"[read_users_db] Системна помилка вводу/виводу: {err}")
+
     return users_db
 
 
@@ -91,9 +105,7 @@ def log_event(func):
             result = "failure"
             raise
         finally:
-            os.makedirs(DATA_DIR, exist_ok=True)
-
-            # Маскування чутливих даних (CWE-532: витік паролів у логи)
+            # Маскування чутливих даних (CWE-532)
             sanitized_args = []
             for idx, arg in enumerate(args):
                 if idx == 1:
@@ -117,17 +129,24 @@ def log_event(func):
                 "kwargs": sanitized_kwargs,
             }
 
-            existing_logs = []
-            if os.path.exists(LOG_FILE_PATH):
-                try:
-                    with open(LOG_FILE_PATH, mode="r", encoding="utf-8") as jf:
-                        existing_logs = json.load(jf)
-                except (OSError, json.JSONDecodeError):
-                    existing_logs = []
+            try:
+                os.makedirs(DATA_DIR, exist_ok=True)
+                existing_logs = []
+                if os.path.exists(LOG_FILE_PATH):
+                    try:
+                        with open(LOG_FILE_PATH, mode="r", encoding="utf-8") as jf:
+                            existing_logs = json.load(jf)
+                    except (json.JSONDecodeError, OSError):
+                        existing_logs = []
 
-            existing_logs.append(log_entry)
-            with open(LOG_FILE_PATH, mode="w", encoding="utf-8") as jf:
-                json.dump(existing_logs, jf, indent=4, ensure_ascii=False)
+                existing_logs.append(log_entry)
+                with open(LOG_FILE_PATH, mode="w", encoding="utf-8") as jf:
+                    json.dump(existing_logs, jf, indent=4, ensure_ascii=False)
+
+            except PermissionError as log_err:
+                print(f"[log_event] Немає прав для запису логу: {log_err}")
+            except OSError as log_err:
+                print(f"[log_event] Помилка файлової системи при логуванні: {log_err}")
 
     return wrapper
 
@@ -142,7 +161,6 @@ def login(
     if not username or not password:
         raise ValueError("Логін та пароль не можуть бути порожніми")
 
-    # Якщо базу не передали явно — завантажуємо її автоматично
     if users_db is None:
         users_db = read_users_db(verbose=False)
 
@@ -158,7 +176,7 @@ def login(
 
 
 def run_task3() -> None:
-    """Головна точка запуску завдань модуля хешування та логування."""
+    """Головна точка демонстрації: не містить низькорівневих файлових try-except."""
     print("=" * 79)
     print(f"Завдання 3 | Студент: {STUDENT_NAME} (Варіант {VARIANT_NUMBER})")
     print(
@@ -166,7 +184,6 @@ def run_task3() -> None:
     )
     print("=" * 79)
 
-    # 10 користувачів (довжина паролів >= 14)
     users_to_register = (
         ("admin_sec", "SuperStr0ngP@ssw0rd!14"),
         ("ai_researcher", "Compli4nc3#Ch3ck2026"),
@@ -180,49 +197,43 @@ def run_task3() -> None:
         ("audit_officer", "Fin@lCompliance!Report"),
     )
 
-    try:
-        print("\n1. Створення бази користувачів у CSV...")
-        create_users(list(users_to_register))
+    print("\n1. Створення бази користувачів у CSV...")
+    if create_users(list(users_to_register)):
         print("База успішно створена.")
 
-        print("\n2. Зчитування та відображення бази:")
-        users_db = read_users_db(verbose=True)
+    print("\n2. Зчитування та відображення бази:")
+    users_db = read_users_db(verbose=True)
 
-        print("\n3. Тестування автентифікації та логування подій:")
+    print("\n3. Тестування автентифікації та логування подій:")
 
-        # Успішний вхід (виклик з явним передаванням БД або без неї)
-        u1, p1 = "ai_researcher", "Compli4nc3#Ch3ck2026"
-        res1 = login(u1, p1, users_db)
-        print(f"Вхід '{u1}': {'УСПІХ' if res1 else 'ВІДМОВА'}")
+    # Успішний вхід
+    u1, p1 = "ai_researcher", "Compli4nc3#Ch3ck2026"
+    res1 = login(u1, p1, users_db)
+    print(f"Вхід '{u1}': {'УСПІХ' if res1 else 'ВІДМОВА'}")
 
-        # Невірний пароль
-        u2, p2 = "ai_researcher", "WrongPasswordHere!12"
-        res2 = login(u2, p2, users_db)
-        print(f"Вхід '{u2}' (невірний пароль): {'УСПІХ' if res2 else 'ВІДМОВА'}")
+    # Невірний пароль
+    u2, p2 = "ai_researcher", "WrongPasswordHere!12"
+    res2 = login(u2, p2, users_db)
+    print(f"Вхід '{u2}' (невірний пароль): {'УСПІХ' if res2 else 'ВІДМОВА'}")
 
-        # Неіснуючий користувач (виклик лише за двома аргументами login(u, p))
-        u3, p3 = "unknown_user", "SomeVeryLongPassword123!"
-        res3 = login(u3, p3)
-        print(f"Вхід '{u3}': {'УСПІХ' if res3 else 'ВІДМОВА'}")
+    # Неіснуючий користувач
+    u3, p3 = "unknown_user", "SomeVeryLongPassword123!"
+    res3 = login(u3, p3)
+    print(f"Вхід '{u3}': {'УСПІХ' if res3 else 'ВІДМОВА'}")
 
-        # Тест валідації винятків
-        print("\n4. Демонстрація перехоплення винятків:")
-        try:
-            generate_hash("short", PERSONAL_SALT)
-        except ValidationError as e:
-            print(f"  [Перехоплено ValidationError]: {e}")
+    # Демонстрація перехоплення винятків бізнес-логіки (валідація даних)
+    print("\n4. Демонстрація перехоплення винятків валідації:")
+    try:
+        generate_hash("short", PERSONAL_SALT)
+    except ValidationError as e:
+        print(f"  [Перехоплено ValidationError]: {e}")
 
-        try:
-            generate_hash("", PERSONAL_SALT)
-        except ValueError as e:
-            print(f"  [Перехоплено ValueError]: {e}")
+    try:
+        generate_hash("", PERSONAL_SALT)
+    except ValueError as e:
+        print(f"  [Перехоплено ValueError]: {e}")
 
-        print(f"\nЖурнал логів успішно оновлено у: {LOG_FILE_PATH}")
-
-    except (OSError, FileNotFoundError, PermissionError) as io_err:
-        print(f"Помилка вводу/виводу: {io_err}")
-    except (ValidationError, ValueError) as val_err:
-        print(f"Помилка валідації: {val_err}")
+    print(f"\nЖурнал логів оновлено у: {LOG_FILE_PATH}")
     print("=" * 79 + "\n")
 
 
