@@ -1,0 +1,3 @@
+STUDENT_NAME = "Кисилиця Назар"
+GROUP_NAME = "КБ-208"
+VARIANT_NUMBER = 13
