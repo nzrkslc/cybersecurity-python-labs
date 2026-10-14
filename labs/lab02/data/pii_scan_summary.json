@@ -1,0 +1,89 @@
+{
+    "scanned_files": 4,
+    "summary": {
+        "Email Addresses": 4,
+        "IPv4 Addresses": 4,
+        "Credit Card Numbers": 3,
+        "Phone Numbers": 2
+    },
+    "findings": [
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\exports\\export.json",
+            "line": 4,
+            "type": "Email Addresses",
+            "value": "c****l@example.test"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\exports\\export.json",
+            "line": 5,
+            "type": "IPv4 Addresses",
+            "value": "203.0.*.*"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\exports\\export.json",
+            "line": 8,
+            "type": "Email Addresses",
+            "value": "d****e@example.test"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\exports\\export.json",
+            "line": 12,
+            "type": "Credit Card Numbers",
+            "value": "4000-****-****-0002"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\logs\\app.log",
+            "line": 1,
+            "type": "Email Addresses",
+            "value": "a****e@example.test"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\logs\\app.log",
+            "line": 1,
+            "type": "IPv4 Addresses",
+            "value": "192.0.*.*"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\logs\\app.log",
+            "line": 3,
+            "type": "Credit Card Numbers",
+            "value": "4111-****-****-1111"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\logs\\app.log",
+            "line": 4,
+            "type": "IPv4 Addresses",
+            "value": "198.51.*.*"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\notes\\users.txt",
+            "line": 2,
+            "type": "Email Addresses",
+            "value": "b****h@example.test"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\notes\\users.txt",
+            "line": 3,
+            "type": "Phone Numbers",
+            "value": "*-***-***-0147"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\notes\\users.txt",
+            "line": 4,
+            "type": "Phone Numbers",
+            "value": "******4567"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\notes\\users.txt",
+            "line": 5,
+            "type": "IPv4 Addresses",
+            "value": "10.20.*.*"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\notes\\users.txt",
+            "line": 6,
+            "type": "Credit Card Numbers",
+            "value": "5555-****-****-4444"
+        }
+    ]
+}
