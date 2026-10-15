@@ -130,7 +130,7 @@ def run_analysis(
 
     print_formatted_report(results)
 
- if out_json:
+    if out_json:
         out_path = Path(out_json)
         try:
             out_path.parent.mkdir(parents=True, exist_ok=True)
