@@ -130,9 +130,12 @@ def run_analysis(
 
     print_formatted_report(results)
 
-    if out_json:
+ if out_json:
         out_path = Path(out_json)
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        with out_path.open("w", encoding="utf-8") as f:
-            json.dump(results, f, indent=4, ensure_ascii=False)
-        logger.info(f"Sanitized report saved to {out_path}")
+        try:
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            with out_path.open("w", encoding="utf-8") as f:
+                json.dump(results, f, indent=4, ensure_ascii=False)
+            logger.info(f"Sanitized report saved to {out_path}")
+        except OSError as e:
+            logger.error(f"Не вдалося зберегти звіт у файл {out_path}: {e}")
