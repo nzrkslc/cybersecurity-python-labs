@@ -1,1 +1,4 @@
-ruff
+fastapi==0.162.4
+pydantic==2.14.3
+ruff==0.16.8
+uvicorn==0.54.0
