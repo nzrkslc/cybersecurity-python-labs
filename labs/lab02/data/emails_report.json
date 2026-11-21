@@ -1,0 +1,32 @@
+{
+    "scanned_files": 4,
+    "summary": {
+        "Email Addresses": 4
+    },
+    "findings": [
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\exports\\export.json",
+            "line": 4,
+            "type": "Email Addresses",
+            "value": "c****l@example.test"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\exports\\export.json",
+            "line": 8,
+            "type": "Email Addresses",
+            "value": "d****e@example.test"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\logs\\app.log",
+            "line": 1,
+            "type": "Email Addresses",
+            "value": "a****e@example.test"
+        },
+        {
+            "file": "labs\\lab02\\data\\data_v13\\scan\\notes\\users.txt",
+            "line": 2,
+            "type": "Email Addresses",
+            "value": "b****h@example.test"
+        }
+    ]
+}
